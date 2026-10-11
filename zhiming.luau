@@ -1,4 +1,4 @@
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/1379qpalzmtygvezimaliexcvbnqplasdfg/199/refs/heads/main/%E4%BA%91Ul.txt"))()
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/jsjsjsj-oss/ui/d153c32c075e60c065f279068eef7f18c8601e08/2.lua"))()
 local Window = Library:new("致命猿")
 
 local Players = game:GetService("Players")
@@ -13,6 +13,7 @@ local Settings = {
     DiamondESP = false,
     CopperESP = false,
     JadeESP = false,
+    PlayerESP = false, --玩家透视开关
     ShowLabel = false,
     Fly = false,
     Noclip = false,
@@ -28,6 +29,8 @@ local GoldColor = Color3.fromRGB(255, 215, 0)
 local DiamondColor = Color3.fromRGB(80, 220, 255)
 local CopperColor = Color3.fromRGB(184, 115, 51)
 local JadeColor = Color3.fromRGB(0, 168, 107)
+local EnemyColor = Color3.fromRGB(255,0,0) --敌对红色（不同队伍）
+local AllyColor = Color3.fromRGB(0,255,0) --队友绿色（同队伍）
 
 local GoldItemNames = {"Gold","Gold Coin","GoldCoin","Knob","Knobs","Coin","Coins"}
 local DiamondItemNames = {"Diamond","Gem","Crystal","Gem Pile","GemPile","Blue Gem"}
@@ -43,10 +46,11 @@ SecESP:Toggle("透视金条","GoldESP",true,function(v) Settings.GoldESP = v end
 SecESP:Toggle("透视钻石","DiamondESP",true,function(v) Settings.DiamondESP = v end)
 SecESP:Toggle("透视铜","CopperESP",true,function(v) Settings.CopperESP = v end)
 SecESP:Toggle("透视翡翠","JadeESP",true,function(v) Settings.JadeESP = v end)
+SecESP:Toggle("玩家透视","PlayerESP",false,function(v) Settings.PlayerESP = v end)
 SecESP:Toggle("显示文字标签","ShowLabel",true,function(v) Settings.ShowLabel = v end)
 SecESP:Button("清除全部透视",function()
     for _,v in ipairs(Workspace:GetDescendants()) do
-        if v:GetAttribute("GoldDiaESP") then
+        if v:GetAttribute("GoldDiaESP") or v:GetAttribute("PlayerESP") then
             v:Destroy()
         end
     end
@@ -154,7 +158,6 @@ SecMove:Toggle("自动互动","AutoInteract",false,function(v)
 
                 if nearestPrompt and nearestDist <= realRange then
                     pcall(function()
-                        --模拟手动按住再松开，替代单纯Trigger()，解决Doors限制
                         nearestPrompt:InputHoldBegin()
                         nearestPrompt:InputHoldEnd()
                         print("模拟按键互动成功，距离:"..math.floor(nearestDist*100)/100)
@@ -174,7 +177,7 @@ end)
 
 local function ClearAllESP()
     for _,v in ipairs(Workspace:GetDescendants()) do
-        if v:GetAttribute("GoldDiaESP") then
+        if v:GetAttribute("GoldDiaESP") or v:GetAttribute("PlayerESP") then
             v:Destroy()
         end
     end
@@ -209,12 +212,12 @@ local function GetMainPart(obj)
     return nil
 end
 
-local function DrawESP(obj,label,color)
+local function DrawESP(obj,label,color,attr)
     local mainPart = GetMainPart(obj)
     if not mainPart then return end
 
     local hl = Instance.new("Highlight")
-    hl:SetAttribute("GoldDiaESP",true)
+    hl:SetAttribute(attr,true)
     hl.Adornee = mainPart
     hl.FillColor = color
     hl.OutlineColor = Color3.new(1,1,1)
@@ -225,7 +228,7 @@ local function DrawESP(obj,label,color)
 
     if Settings.ShowLabel then
         local bill = Instance.new("BillboardGui")
-        bill:SetAttribute("GoldDiaESP",true)
+        bill:SetAttribute(attr,true)
         bill.Adornee = mainPart
         bill.AlwaysOnTop = true
         bill.Size = UDim2.new(0,100,0,30)
@@ -233,14 +236,14 @@ local function DrawESP(obj,label,color)
         bill.Parent = mainPart
 
         local txt = Instance.new("TextLabel")
-        txt:SetAttribute("GoldDiaESP",true)
+        txt:SetAttribute(attr,true)
         txt.Size = UDim2.new(1,0,1,0)
         txt.BackgroundTransparency = 1
         txt.Text = label
         txt.TextColor3 = color
         txt.TextStrokeTransparency = 0
         txt.TextStrokeColor3 = Color3.new(0,0,0)
-        txt.Font = Enum.Font.SourceSansBold
+        txt.Font = Enum.Font.SourceSans
         txt.TextSize = 16
         txt.Parent = bill
     end
@@ -248,28 +251,42 @@ end
 
 task.spawn(function()
     while task.wait(0.5) do
-        if not Settings.GoldESP and not Settings.DiamondESP and not Settings.CopperESP and not Settings.JadeESP then
-            ClearAllESP()
-            continue
-        end
         ClearAllESP()
+        --物品ESP
+        if Settings.GoldESP or Settings.DiamondESP or Settings.CopperESP or Settings.JadeESP then
+            for _,obj in ipairs(Workspace:GetDescendants()) do
+                if not (obj:IsA("Model") or obj:IsA("BasePart")) then continue end
+                if IsBlack(obj.Name) then continue end
+                local mp = GetMainPart(obj)
+                if not mp or mp.Transparency >=0.9 then continue end
 
-        for _,obj in ipairs(Workspace:GetDescendants()) do
-            if not (obj:IsA("Model") or obj:IsA("BasePart")) then continue end
-            if IsBlack(obj.Name) then continue end
+                if Settings.GoldESP and HasNameMatch(obj.Name,GoldItemNames) then
+                    DrawESP(obj,"金条",GoldColor,"GoldDiaESP")
+                elseif Settings.DiamondESP and HasNameMatch(obj.Name,DiamondItemNames) then
+                    DrawESP(obj,"钻石",DiamondColor,"GoldDiaESP")
+                elseif Settings.CopperESP and HasNameMatch(obj.Name,CopperItemNames) then
+                    DrawESP(obj,"铜",CopperColor,"GoldDiaESP")
+                elseif Settings.JadeESP and HasNameMatch(obj.Name,JadeItemNames) then
+                    DrawESP(obj,"翡翠",JadeColor,"GoldDiaESP")
+                end
+            end
+        end
 
-            local mp = GetMainPart(obj)
-            if not mp then continue end
-            if mp.Transparency >= 0.9 then continue end
+        --玩家队伍ESP核心逻辑
+        if Settings.PlayerESP then
+            local myTeam = player.Team
+            for _,targetPlr in ipairs(Players:GetPlayers()) do
+                if targetPlr == player then continue end
+                local tarChar = targetPlr.Character
+                if not tarChar then continue end
+                local human = tarChar:FindFirstChildOfClass("Humanoid")
+                if not human or human.Health <= 0 then continue end
 
-            if Settings.GoldESP and HasNameMatch(obj.Name,GoldItemNames) then
-                DrawESP(obj,"金条",GoldColor)
-            elseif Settings.DiamondESP and HasNameMatch(obj.Name,DiamondItemNames) then
-                DrawESP(obj,"钻石",DiamondColor)
-            elseif Settings.CopperESP and HasNameMatch(obj.Name,CopperItemNames) then
-                DrawESP(obj,"铜",CopperColor)
-            elseif Settings.JadeESP and HasNameMatch(obj.Name,JadeItemNames) then
-                DrawESP(obj,"翡翠",JadeColor)
+                local espColor = EnemyColor
+                if targetPlr.Team == myTeam then
+                    espColor = AllyColor
+                end
+                DrawESP(tarChar,targetPlr.Name,espColor,"PlayerESP")
             end
         end
     end
@@ -294,4 +311,4 @@ player.CharacterAdded:Connect(function()
     end
 end)
 
-print("脚本加载完成：物品透视+飞行+穿墙+模拟按键自动互动+快速互动比特大帝创建😂😂😂😂😂😂")
+print("脚本加载完成：物品透视+队伍玩家透视(同队绿/异队红)+飞行+穿墙+模拟按键自动互动+快速互动比特哥创建")
