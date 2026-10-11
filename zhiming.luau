@@ -1,5 +1,5 @@
 local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/1379qpalzmtygvezimaliexcvbnqplasdfg/199/refs/heads/main/%E4%BA%91Ul.txt"))()
-local Window = Library:new("Gold/Diamond道具透视")
+local Window = Library:new("致命猿")
 
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
@@ -9,11 +9,11 @@ local char = player.Character or player.CharacterAdded:Wait()
 local root = char:WaitForChild("HumanoidRootPart")
 
 local Settings = {
-    GoldESP = true,
-    DiamondESP = true,
-    CopperESP = true,
-    JadeESP = true,
-    ShowLabel = true,
+    GoldESP = false,
+    DiamondESP = false,
+    CopperESP = false,
+    JadeESP = false,
+    ShowLabel = false,
     Fly = false,
     Noclip = false,
     AutoInteract = false,
@@ -39,8 +39,8 @@ local Tab = Window:Tab("功能面板", '5436396975')
 local SecESP = Tab:section("物品透视", true)
 local SecMove = Tab:section("移动功能", true)
 
-SecESP:Toggle("透视金币本体","GoldESP",true,function(v) Settings.GoldESP = v end)
-SecESP:Toggle("透视钻石本体","DiamondESP",true,function(v) Settings.DiamondESP = v end)
+SecESP:Toggle("透视金条","GoldESP",true,function(v) Settings.GoldESP = v end)
+SecESP:Toggle("透视钻石","DiamondESP",true,function(v) Settings.DiamondESP = v end)
 SecESP:Toggle("透视铜","CopperESP",true,function(v) Settings.CopperESP = v end)
 SecESP:Toggle("透视翡翠","JadeESP",true,function(v) Settings.JadeESP = v end)
 SecESP:Toggle("显示文字标签","ShowLabel",true,function(v) Settings.ShowLabel = v end)
@@ -263,7 +263,7 @@ task.spawn(function()
             if mp.Transparency >= 0.9 then continue end
 
             if Settings.GoldESP and HasNameMatch(obj.Name,GoldItemNames) then
-                DrawESP(obj,"金币",GoldColor)
+                DrawESP(obj,"金条",GoldColor)
             elseif Settings.DiamondESP and HasNameMatch(obj.Name,DiamondItemNames) then
                 DrawESP(obj,"钻石",DiamondColor)
             elseif Settings.CopperESP and HasNameMatch(obj.Name,CopperItemNames) then
@@ -294,4 +294,4 @@ player.CharacterAdded:Connect(function()
     end
 end)
 
-print("脚本加载完成：物品透视+飞行+穿墙+模拟按键自动互动+快速互动")
+print("脚本加载完成：物品透视+飞行+穿墙+模拟按键自动互动+快速互动比特大帝创建😂😂😂😂😂😂")
