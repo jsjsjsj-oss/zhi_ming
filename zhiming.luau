@@ -104,6 +104,7 @@ local function IsHeldByPlayer(obj)
     return false
 end
 
+-- ==========致命猿专用怪物驱逐函数==========
 local function RepelApeMonster(hrp, range)
     local foundMonster = false
     local monsterNames = {"Dus","Bloodman","Sandman","Gus","Kus","Ashy","Gooba","Lost","Lurker","Scar"}
@@ -122,7 +123,7 @@ local function RepelApeMonster(hrp, range)
                 if dist <= range then
                     monsterRoot.CFrame = hrp.CFrame + Vector3.new(0,5,20)
                     foundMonster = true
-                    print("⚠️怪已推开，距离:"..math.floor(dist))
+                    print("⚠️怪物已推开，距离:"..math.floor(dist))
                 end
             end
         end
@@ -253,12 +254,12 @@ SecMove:Toggle("穿墙(Noclip)","Noclip",false,function(v)
         if noclipConnection then
             noclipConnection:Disconnect()
             noclipConnection = nil
-            local character = player.Character
-            if character then
-                for _,part in ipairs(character:GetChildren()) do
-                    if part:IsA("BasePart") then
-                        part.CanCollide = true
-                    end
+        end
+        local character = player.Character
+        if character then
+            for _,part in ipairs(character:GetChildren()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = true
                 end
             end
         end
@@ -449,6 +450,7 @@ task.spawn(function()
             end
         end
 
+        -- =========修复玩家ESP 队伍颜色逻辑=========
         if Settings.PlayerESP then
             for _,targetPlr in ipairs(Players:GetPlayers()) do
                 if targetPlr ~= player and targetPlr.Character then
@@ -456,7 +458,9 @@ task.spawn(function()
                     local hum = charPlr:FindFirstChildOfClass("Humanoid")
                     local mp = charPlr:FindFirstChild("HumanoidRootPart")
                     if hum and mp then
-                        DrawESP(charPlr,targetPlr.Name,EnemyColor,"PlayerESP")
+                        -- 判断队伍
+                        local playerColor = (targetPlr.Team == player.Team) and AllyColor or EnemyColor
+                        DrawESP(charPlr, targetPlr.Name, playerColor, "PlayerESP")
                     end
                 end
             end
@@ -476,5 +480,13 @@ player.CharacterAdded:Connect(function(newChar)
         end
     end
 end)
-
-print("致命猿脚本已加载 作者:比特大蛇")
+local StarterGui = game:GetService("StarterGui")
+local function PopNotify(title,msg,time)
+    StarterGui:SetCore("SendNotification",{
+        Title = title,
+        Text = msg,
+        Duration = time
+    })
+end
+PopNotify("致命猿","脚本加载成功",3)
+PopNotify("制作人","龙乐乐",3)
